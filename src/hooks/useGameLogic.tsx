@@ -1,5 +1,5 @@
-import { useState, useCallback } from "react";
-import { useToast } from "@/components/ui/use-toast";
+import { useState, useCallback, useRef } from "react";
+import { useToast } from "@/hooks/use-toast";
 import { GameState, Direction, Position } from "@/types/gameTypes";
 import { ALPHABET, INITIAL_WORD, GRID_HEIGHT, GRID_WIDTH } from "@/constants/gameConstants";
 import { getTargetPositions, createBoard, calculateNewPosition, getRandomBookPosition, getRandomFirePosition } from "@/utils/boardUtils";
@@ -18,8 +18,14 @@ const useGameLogic = () => {
   const [isWordCompleted, setIsWordCompleted] = useState(false);
   const [collectedLetters, setCollectedLetters] = useState<string[]>([]);
   const [burnedLetters, setBurnedLetters] = useState<string[]>([]);
+  const [soundEnabled, setSoundEnabled] = useState(true);
+  const soundEnabledRef = useRef(soundEnabled);
+  
+  // Keep ref in sync with state
+  soundEnabledRef.current = soundEnabled;
 
   const speak = useCallback((text: string) => {
+    if (!soundEnabledRef.current) return;
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = 'sv-SE';
     utterance.rate = 0.9;
@@ -185,6 +191,10 @@ const useGameLogic = () => {
 
   const board = createBoard(gameState, matchedLetters, bookPosition, firePosition);
 
+  const toggleSound = useCallback(() => {
+    setSoundEnabled(prev => !prev);
+  }, []);
+
   return {
     board,
     moveLetter,
@@ -196,6 +206,9 @@ const useGameLogic = () => {
     isWordCompleted,
     collectedLetters,
     burnedLetters,
+    soundEnabled,
+    toggleSound,
+    speak,
   };
 };
 

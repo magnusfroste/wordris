@@ -1,25 +1,28 @@
-import { useEffect, useCallback, useRef, useState } from "react";
+import { useEffect, useCallback, useRef } from "react";
 import Letter from "./Letter";
 import Fireplace from "./Fireplace";
 import useGameLogic from "@/hooks/useGameLogic";
-import { useToast } from "./ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { Book, Flame, Volume2, VolumeX } from "lucide-react";
 
 const GameBoard = () => {
-  const { board, moveLetter, updateLetterPositions, addNewLetter, targetPositions, matchedLetters, isWordCompleted, collectedLetters, burnedLetters } = useGameLogic();
+  const { 
+    board, 
+    moveLetter, 
+    updateLetterPositions, 
+    addNewLetter, 
+    targetPositions, 
+    matchedLetters, 
+    isWordCompleted, 
+    collectedLetters, 
+    burnedLetters,
+    soundEnabled,
+    toggleSound,
+    speak
+  } = useGameLogic();
   const { toast } = useToast();
   const gameRef = useRef<HTMLDivElement>(null);
   const moveIntervalRef = useRef<NodeJS.Timeout | null>(null);
-  const [soundEnabled, setSoundEnabled] = useState(true);
-
-  const speak = useCallback((text: string) => {
-    if (!soundEnabled) return;
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = 'sv-SE';
-    utterance.rate = 0.9;
-    utterance.pitch = 1.1;
-    window.speechSynthesis.speak(utterance);
-  }, [soundEnabled]);
 
   const handleKeyPress = useCallback((e: KeyboardEvent) => {
     if (e.key === "ArrowLeft") {
@@ -100,7 +103,7 @@ const GameBoard = () => {
     <div className="flex flex-col items-center gap-4">
       {/* Sound Toggle */}
       <button
-        onClick={() => setSoundEnabled(!soundEnabled)}
+        onClick={toggleSound}
         className="flex items-center gap-2 px-4 py-2 rounded-lg bg-card hover:bg-muted transition-colors text-sm font-medium shadow-sm"
         aria-label={soundEnabled ? "Stäng av ljud" : "Sätt på ljud"}
       >
