@@ -37,11 +37,7 @@ export const createBoard = (
     .fill(null)
     .map(() => Array(GRID_WIDTH).fill(null));
 
-  // Add bottom row of fire
-  for (let x = 0; x < GRID_WIDTH; x++) {
-    board[GRID_HEIGHT - 1][x] = "🔥";
-  }
-
+  // Place book and fire pickups on board
   board[bookPosition.y][bookPosition.x] = "📚";
   board[firePosition.y][firePosition.x] = "🔥";
 

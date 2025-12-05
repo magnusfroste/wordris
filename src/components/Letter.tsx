@@ -30,12 +30,12 @@ const Letter = ({ letter, isActive, isTarget, isMatched }: LetterProps) => {
     <div
       className={`letter-block ${
         isMatched
-          ? "bg-green-500 text-white celebration"
+          ? "bg-green-500 text-white celebration shadow-lg"
           : isActive
-          ? "bg-primary text-white scale-110"
+          ? "bg-primary text-primary-foreground scale-110 shadow-lg"
           : isTarget
-          ? "bg-secondary/30 text-secondary-foreground/70"
-          : "bg-primary/80 text-white"
+          ? "bg-primary/20 text-primary border-2 border-primary/40"
+          : "bg-primary text-primary-foreground"
       }`}
     >
       {letter}
