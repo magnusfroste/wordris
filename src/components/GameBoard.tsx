@@ -1,23 +1,25 @@
-import { useEffect, useCallback, useRef } from "react";
+import { useEffect, useCallback, useRef, useState } from "react";
 import Letter from "./Letter";
 import Fireplace from "./Fireplace";
 import useGameLogic from "@/hooks/useGameLogic";
 import { useToast } from "./ui/use-toast";
-import { Book, Flame } from "lucide-react";
+import { Book, Flame, Volume2, VolumeX } from "lucide-react";
 
 const GameBoard = () => {
   const { board, moveLetter, updateLetterPositions, addNewLetter, targetPositions, matchedLetters, isWordCompleted, collectedLetters, burnedLetters } = useGameLogic();
   const { toast } = useToast();
   const gameRef = useRef<HTMLDivElement>(null);
   const moveIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const [soundEnabled, setSoundEnabled] = useState(true);
 
   const speak = useCallback((text: string) => {
+    if (!soundEnabled) return;
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = 'sv-SE';
     utterance.rate = 0.9;
     utterance.pitch = 1.1;
     window.speechSynthesis.speak(utterance);
-  }, []);
+  }, [soundEnabled]);
 
   const handleKeyPress = useCallback((e: KeyboardEvent) => {
     if (e.key === "ArrowLeft") {
@@ -95,70 +97,86 @@ const GameBoard = () => {
   };
 
   return (
-    <div className="flex items-start justify-center gap-6">
-      {/* Saved Letters */}
-      <div className="w-20 flex flex-col items-center pt-4">
-        <div className="flex items-center justify-center gap-2 text-sm font-medium text-muted-foreground mb-3">
-          <Book className="w-6 h-6 text-primary" />
-        </div>
-        <div className="space-y-2">
-          {collectedLetters.map((letter, index) => {
-            const handleCollectedSpeak = () => speak(`Sparad bokstav ${letter}`);
-            return (
-              <div
-                key={index}
-                onClick={handleCollectedSpeak}
-                className="w-10 h-10 flex items-center justify-center bg-primary text-primary-foreground rounded-lg font-bold text-lg cursor-pointer hover:scale-105 transition-transform shadow-md"
-              >
-                {letter}
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Game Board */}
-      <div 
-        ref={gameRef}
-        tabIndex={0}
-        className="relative bg-card/80 backdrop-blur-sm rounded-2xl p-4 shadow-xl focus:outline-none focus:ring-2 focus:ring-primary/50"
+    <div className="flex flex-col items-center gap-4">
+      {/* Sound Toggle */}
+      <button
+        onClick={() => setSoundEnabled(!soundEnabled)}
+        className="flex items-center gap-2 px-4 py-2 rounded-lg bg-card hover:bg-muted transition-colors text-sm font-medium shadow-sm"
+        aria-label={soundEnabled ? "Stäng av ljud" : "Sätt på ljud"}
       >
-        <div className="grid gap-1" style={{ gridTemplateRows: `repeat(${board.length}, 1fr)` }}>
-          {board.map((row, rowIndex) => (
-            <div key={rowIndex} className="grid grid-cols-7 gap-1">
-              {row.map((cell, colIndex) => (
-                <Letter
-                  key={`${rowIndex}-${colIndex}`}
-                  letter={cell}
-                  isActive={cell !== null && cell !== "🔥" && cell !== "📚"}
-                  isTarget={isTargetPosition(rowIndex, colIndex)}
-                  isMatched={isMatchedPosition(rowIndex, colIndex)}
-                />
-              ))}
-            </div>
-          ))}
-        </div>
-        <Fireplace />
-      </div>
+        {soundEnabled ? (
+          <Volume2 className="w-5 h-5 text-primary" />
+        ) : (
+          <VolumeX className="w-5 h-5 text-muted-foreground" />
+        )}
+        <span className="text-foreground">{soundEnabled ? "Ljud på" : "Ljud av"}</span>
+      </button>
 
-      {/* Burned Letters */}
-      <div className="w-20 flex flex-col items-center pt-4">
-        <div className="flex items-center justify-center gap-2 text-sm font-medium text-muted-foreground mb-3">
-          <Flame className="w-6 h-6 text-orange-500" />
+      <div className="flex items-start justify-center gap-6">
+        {/* Saved Letters */}
+        <div className="w-20 flex flex-col items-center pt-4">
+          <div className="flex items-center justify-center gap-2 text-sm font-medium text-muted-foreground mb-3">
+            <Book className="w-6 h-6 text-primary" />
+          </div>
+          <div className="space-y-2">
+            {collectedLetters.map((letter, index) => {
+              const handleCollectedSpeak = () => speak(`Sparad bokstav ${letter}`);
+              return (
+                <div
+                  key={index}
+                  onClick={handleCollectedSpeak}
+                  className="w-10 h-10 flex items-center justify-center bg-primary text-primary-foreground rounded-lg font-bold text-lg cursor-pointer hover:scale-105 transition-transform shadow-md"
+                >
+                  {letter}
+                </div>
+              );
+            })}
+          </div>
         </div>
-        <div className="space-y-2">
-          {burnedLetters.map((letter, index) => {
-            const handleBurnedSpeak = () => speak(`Bränd bokstav ${letter}`);
-            return (
-              <div
-                key={index}
-                onClick={handleBurnedSpeak}
-                className="w-10 h-10 flex items-center justify-center bg-destructive text-destructive-foreground rounded-lg font-bold text-lg cursor-pointer hover:scale-105 transition-transform shadow-md"
-              >
-                {letter}
+
+        {/* Game Board */}
+        <div 
+          ref={gameRef}
+          tabIndex={0}
+          className="relative bg-card/80 backdrop-blur-sm rounded-2xl p-4 shadow-xl focus:outline-none focus:ring-2 focus:ring-primary/50"
+        >
+          <div className="grid gap-1" style={{ gridTemplateRows: `repeat(${board.length}, 1fr)` }}>
+            {board.map((row, rowIndex) => (
+              <div key={rowIndex} className="grid grid-cols-7 gap-1">
+                {row.map((cell, colIndex) => (
+                  <Letter
+                    key={`${rowIndex}-${colIndex}`}
+                    letter={cell}
+                    isActive={cell !== null && cell !== "🔥" && cell !== "📚"}
+                    isTarget={isTargetPosition(rowIndex, colIndex)}
+                    isMatched={isMatchedPosition(rowIndex, colIndex)}
+                  />
+                ))}
               </div>
-            );
-          })}
+            ))}
+          </div>
+          <Fireplace />
+        </div>
+
+        {/* Burned Letters */}
+        <div className="w-20 flex flex-col items-center pt-4">
+          <div className="flex items-center justify-center gap-2 text-sm font-medium text-muted-foreground mb-3">
+            <Flame className="w-6 h-6 text-orange-500" />
+          </div>
+          <div className="space-y-2">
+            {burnedLetters.map((letter, index) => {
+              const handleBurnedSpeak = () => speak(`Bränd bokstav ${letter}`);
+              return (
+                <div
+                  key={index}
+                  onClick={handleBurnedSpeak}
+                  className="w-10 h-10 flex items-center justify-center bg-destructive text-destructive-foreground rounded-lg font-bold text-lg cursor-pointer hover:scale-105 transition-transform shadow-md"
+                >
+                  {letter}
+                </div>
+              );
+            })}
+          </div>
         </div>
       </div>
     </div>
