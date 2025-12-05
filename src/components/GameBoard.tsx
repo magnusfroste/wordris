@@ -95,12 +95,12 @@ const GameBoard = () => {
   };
 
   return (
-    <div className="flex gap-4">
+    <div className="flex items-start justify-center gap-6">
       {/* Saved Letters */}
-      <div className="w-24 space-y-2">
-        <h3 className="flex items-center justify-center gap-2 text-sm font-medium text-muted-foreground">
-          <Book className="w-6 h-6" />
-        </h3>
+      <div className="w-20 flex flex-col items-center pt-4">
+        <div className="flex items-center justify-center gap-2 text-sm font-medium text-muted-foreground mb-3">
+          <Book className="w-6 h-6 text-primary" />
+        </div>
         <div className="space-y-2">
           {collectedLetters.map((letter, index) => {
             const handleCollectedSpeak = () => speak(`Sparad bokstav ${letter}`);
@@ -108,7 +108,7 @@ const GameBoard = () => {
               <div
                 key={index}
                 onClick={handleCollectedSpeak}
-                className="w-10 h-10 mx-auto flex items-center justify-center bg-primary text-primary-foreground rounded-lg font-bold text-lg cursor-pointer hover:opacity-90"
+                className="w-10 h-10 flex items-center justify-center bg-primary text-primary-foreground rounded-lg font-bold text-lg cursor-pointer hover:scale-105 transition-transform shadow-md"
               >
                 {letter}
               </div>
@@ -121,16 +121,16 @@ const GameBoard = () => {
       <div 
         ref={gameRef}
         tabIndex={0}
-        className="relative bg-white/50 backdrop-blur-sm rounded-xl p-4 shadow-xl h-[80vh] overflow-y-auto focus:outline-none focus:ring-2 focus:ring-primary focus:ring-opacity-50"
+        className="relative bg-card/80 backdrop-blur-sm rounded-2xl p-4 shadow-xl focus:outline-none focus:ring-2 focus:ring-primary/50"
       >
-        <div className="grid grid-rows-[repeat(12,minmax(0,1fr))] gap-1">
+        <div className="grid gap-1" style={{ gridTemplateRows: `repeat(${board.length}, 1fr)` }}>
           {board.map((row, rowIndex) => (
             <div key={rowIndex} className="grid grid-cols-7 gap-1">
               {row.map((cell, colIndex) => (
                 <Letter
                   key={`${rowIndex}-${colIndex}`}
                   letter={cell}
-                  isActive={cell !== null}
+                  isActive={cell !== null && cell !== "🔥" && cell !== "📚"}
                   isTarget={isTargetPosition(rowIndex, colIndex)}
                   isMatched={isMatchedPosition(rowIndex, colIndex)}
                 />
@@ -142,10 +142,10 @@ const GameBoard = () => {
       </div>
 
       {/* Burned Letters */}
-      <div className="w-24 space-y-2">
-        <h3 className="flex items-center justify-center gap-2 text-sm font-medium text-muted-foreground">
+      <div className="w-20 flex flex-col items-center pt-4">
+        <div className="flex items-center justify-center gap-2 text-sm font-medium text-muted-foreground mb-3">
           <Flame className="w-6 h-6 text-orange-500" />
-        </h3>
+        </div>
         <div className="space-y-2">
           {burnedLetters.map((letter, index) => {
             const handleBurnedSpeak = () => speak(`Bränd bokstav ${letter}`);
@@ -153,7 +153,7 @@ const GameBoard = () => {
               <div
                 key={index}
                 onClick={handleBurnedSpeak}
-                className="w-10 h-10 mx-auto flex items-center justify-center bg-destructive text-destructive-foreground rounded-lg font-bold text-lg cursor-pointer hover:opacity-90"
+                className="w-10 h-10 flex items-center justify-center bg-destructive text-destructive-foreground rounded-lg font-bold text-lg cursor-pointer hover:scale-105 transition-transform shadow-md"
               >
                 {letter}
               </div>
