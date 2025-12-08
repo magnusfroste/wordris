@@ -9,6 +9,7 @@ import {
   updateLetterPosition,
   createBoard,
   getTargetPositions,
+  startNewRound,
 } from "@/models/GameModel";
 import { soundModel } from "@/models/SoundModel";
 
@@ -29,7 +30,7 @@ export function useGameController() {
 
   // Derived state
   const board = createBoard(gameState);
-  const targetPositions = getTargetPositions();
+  const targetPositions = getTargetPositions(gameState.currentWord);
 
   // Sound functions
   const speak = useCallback((text: string) => {
@@ -74,7 +75,11 @@ export function useGameController() {
           // Optional: sound for match
           break;
         case 'completed':
-          showToastAndSpeak("Grattis! 🎉", "Du klarade ordet!");
+          showToastAndSpeak("Grattis! 🎉", "Du klarade ordet! Nytt ord kommer...");
+          // Start new round after delay
+          setTimeout(() => {
+            setGameState(current => startNewRound(current));
+          }, 2000);
           break;
       }
       
@@ -162,6 +167,7 @@ export function useGameController() {
     burnedLetters: gameState.burnedLetters,
     isWordCompleted: gameState.isWordCompleted,
     soundEnabled,
+    currentWord: gameState.currentWord,
     
     // Actions
     toggleSound,
