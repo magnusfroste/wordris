@@ -69,7 +69,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
   const [soundEnabled, setSoundEnabled] = React.useState(true);
 
   const board = useMemo(() => createBoard(state), [state]);
-  const targetPositions = useMemo(() => getTargetPositions(), []);
+  const targetPositions = useMemo(() => getTargetPositions(state.currentWord), [state.currentWord]);
 
   const spawnNewLetter = useCallback(() => {
     dispatch({ type: 'SPAWN_LETTER' });

@@ -14,15 +14,15 @@ const Index = () => {
   
   useEffect(() => {
     toast({
-      title: "Välkommen till OrdNisse!",
-      description: "Använd vänster/höger piltangenter för att styra bokstäverna.",
+      title: "Välkommen till Wordris!",
+      description: "Styr bokstäverna och bilda ordet. Nya ord varje runda!",
     });
   }, []);
 
   return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
       <div className="flex items-center justify-center w-full gap-2 mb-8">
-        <h1 className="text-4xl font-bold text-primary">OrdNisse</h1>
+        <h1 className="text-4xl font-bold text-primary">Wordris</h1>
         <Popover>
           <PopoverTrigger>
             <Info className="w-6 h-6 text-primary hover:text-primary/80 transition-colors cursor-pointer" />

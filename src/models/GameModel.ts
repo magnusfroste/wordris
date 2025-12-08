@@ -1,6 +1,7 @@
 // GameModel - Ren affärslogik utan React
 import { Position, ActiveLetter, PlacedLetter, Direction } from "@/types/gameTypes";
-import { ALPHABET, INITIAL_WORD, GRID_HEIGHT, GRID_WIDTH } from "@/constants/gameConstants";
+import { ALPHABET, GRID_HEIGHT, GRID_WIDTH, TARGET_ROW } from "@/constants/gameConstants";
+import { getRandomWord } from "@/constants/wordBank";
 
 const BOOK_MIN_ROW = 3;
 const BOOK_MAX_ROW = 7;
@@ -16,6 +17,7 @@ export interface GameModelState {
   isWordCompleted: boolean;
   bookPosition: Position;
   firePosition: Position;
+  currentWord: string;
 }
 
 export interface MoveResult {
@@ -37,25 +39,43 @@ export const getRandomFirePosition = (): Position => {
   return { x, y };
 };
 
-export const getTargetPositions = (): (Position & { letter: string })[] => {
-  const startX = Math.floor((GRID_WIDTH - INITIAL_WORD.length) / 2);
-  return INITIAL_WORD.split("").map((letter, index) => ({
+export const getTargetPositions = (word: string): (Position & { letter: string })[] => {
+  const startX = Math.floor((GRID_WIDTH - word.length) / 2);
+  return word.split("").map((letter, index) => ({
     letter,
     x: startX + index,
-    y: 8
+    y: TARGET_ROW
   }));
 };
 
-export const createInitialState = (): GameModelState => ({
-  activeLetter: null,
-  placedLetters: [],
-  matchedLetters: [],
-  collectedLetters: [],
-  burnedLetters: [],
-  isWordCompleted: false,
-  bookPosition: getRandomBookPosition(),
-  firePosition: getRandomFirePosition(),
-});
+export const createInitialState = (): GameModelState => {
+  const { word } = getRandomWord();
+  return {
+    activeLetter: null,
+    placedLetters: [],
+    matchedLetters: [],
+    collectedLetters: [],
+    burnedLetters: [],
+    isWordCompleted: false,
+    bookPosition: getRandomBookPosition(),
+    firePosition: getRandomFirePosition(),
+    currentWord: word,
+  };
+};
+
+export const startNewRound = (state: GameModelState): GameModelState => {
+  const { word } = getRandomWord();
+  return {
+    ...state,
+    activeLetter: null,
+    placedLetters: [],
+    matchedLetters: [],
+    isWordCompleted: false,
+    bookPosition: getRandomBookPosition(),
+    firePosition: getRandomFirePosition(),
+    currentWord: word,
+  };
+};
 
 export const spawnLetter = (state: GameModelState): GameModelState | null => {
   if (state.activeLetter || state.isWordCompleted) return null;
@@ -122,7 +142,7 @@ export const updateLetterPosition = (state: GameModelState): MoveResult => {
     return { newState: state, event: 'none' };
   }
 
-  const { activeLetter, bookPosition, firePosition, matchedLetters, placedLetters } = state;
+  const { activeLetter, bookPosition, firePosition, matchedLetters, placedLetters, currentWord } = state;
   const newY = activeLetter.position.y + 1;
   const letter = activeLetter.letter;
 
@@ -166,8 +186,8 @@ export const updateLetterPosition = (state: GameModelState): MoveResult => {
   }
 
   // Check target word match
-  const targetPositions = getTargetPositions();
-  const currentTargetIndex = INITIAL_WORD.split("").findIndex(
+  const targetPositions = getTargetPositions(currentWord);
+  const currentTargetIndex = currentWord.split("").findIndex(
     (targetLetter, index) => {
       const targetPos = targetPositions[index];
       return (
@@ -187,7 +207,7 @@ export const updateLetterPosition = (state: GameModelState): MoveResult => {
   if (currentTargetIndex !== -1) {
     const targetPos = targetPositions[currentTargetIndex];
     const newMatchedLetters = [...matchedLetters, { x: targetPos.x, y: targetPos.y }];
-    const isCompleted = newMatchedLetters.length === INITIAL_WORD.length;
+    const isCompleted = newMatchedLetters.length === currentWord.length;
 
     return {
       newState: {
@@ -230,7 +250,7 @@ export const updateLetterPosition = (state: GameModelState): MoveResult => {
 };
 
 export const createBoard = (state: GameModelState): (string | null)[][] => {
-  const { activeLetter, placedLetters, matchedLetters, bookPosition, firePosition } = state;
+  const { activeLetter, placedLetters, matchedLetters, bookPosition, firePosition, currentWord } = state;
   
   const board: (string | null)[][] = Array(GRID_HEIGHT)
     .fill(null)
@@ -252,7 +272,7 @@ export const createBoard = (state: GameModelState): (string | null)[][] => {
   });
 
   // Place target word (unmatched positions)
-  const targetPositions = getTargetPositions();
+  const targetPositions = getTargetPositions(currentWord);
   targetPositions.forEach(({ letter, x, y }) => {
     if (!matchedLetters.some(match => match.x === x && match.y === y)) {
       board[y][x] = letter;
