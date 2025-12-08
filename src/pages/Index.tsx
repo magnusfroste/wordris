@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import GameBoard from "@/components/GameBoard";
+import GameBoard from "@/components/GameBoard/GameBoard";
 import { useToast } from "@/hooks/use-toast";
 import { Info } from "lucide-react";
 import {
