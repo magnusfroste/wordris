@@ -79,7 +79,9 @@
 
 @layer utilities {
   .letter-block {
-    @apply flex items-center justify-center w-12 h-12 text-2xl font-bold rounded-lg shadow-md transition-all duration-200;
+    @apply flex items-center justify-center w-12 h-12 text-2xl font-bold rounded-lg shadow-md;
+    transition: transform 150ms ease-out, background-color 150ms ease-out, color 150ms ease-out, box-shadow 150ms ease-out;
+    will-change: transform, background-color;
   }
   
   .celebration {
