@@ -65,31 +65,41 @@ export function useGameController() {
   }, []);
 
   const updatePosition = useCallback(() => {
+    let eventToHandle: { event: string; letter?: string } | null = null;
+    
     setGameState(current => {
       const result = updateLetterPosition(current);
       
-      // Handle events
-      switch (result.event) {
+      // Store event for handling AFTER state update
+      if (result.event !== 'none') {
+        eventToHandle = { event: result.event, letter: result.letter };
+      }
+      
+      return result.newState;
+    });
+    
+    // Handle events OUTSIDE of setState to avoid render-phase updates
+    setTimeout(() => {
+      if (!eventToHandle) return;
+      
+      switch (eventToHandle.event) {
         case 'collected':
-          showToastAndSpeak("Ny bokstav! 📚", `Du samlade bokstaven ${result.letter}!`);
+          showToastAndSpeak("Ny bokstav! 📚", `Du samlade bokstaven ${eventToHandle.letter}!`);
           break;
         case 'burned':
-          showToastAndSpeak("Bokstav bränd! 🔥", `Bokstaven ${result.letter} brann upp!`);
+          showToastAndSpeak("Bokstav bränd! 🔥", `Bokstaven ${eventToHandle.letter} brann upp!`);
           break;
         case 'matched':
           // Optional: sound for match
           break;
         case 'completed':
           showToastAndSpeak("Grattis! 🎉", "Du klarade ordet! Nytt ord kommer...");
-          // Start new round after delay
           setTimeout(() => {
             setGameState(current => startNewRound(current));
           }, 2000);
           break;
       }
-      
-      return result.newState;
-    });
+    }, 0);
   }, [showToastAndSpeak]);
 
   // Fast fall controls
