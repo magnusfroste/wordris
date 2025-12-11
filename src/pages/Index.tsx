@@ -67,6 +67,20 @@ const Index = () => {
           <GameBoard />
         </div>
       </div>
+      
+      <footer className="mt-8 text-sm text-muted-foreground">
+        <p>
+          Av Magnus Froste · {" "}
+          <a 
+            href="https://github.com/magnusfroste" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="underline hover:text-primary transition-colors"
+          >
+            Open Source
+          </a>
+        </p>
+      </footer>
     </div>
   );
 };
