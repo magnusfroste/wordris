@@ -12,21 +12,26 @@ import {
   startNewRound,
 } from "@/models/GameModel";
 import { soundModel } from "@/models/SoundModel";
+import { SPEED_LEVELS, SpeedLevel } from "@/constants/gameConstants";
 
-const NORMAL_FALL_SPEED = 500;
 const FAST_FALL_SPEED = 100;
-const SPAWN_INTERVAL = 3000;
 
 export function useGameController() {
   const { toast } = useToast();
   const [gameState, setGameState] = useState<GameModelState>(createInitialState);
   const [soundEnabled, setSoundEnabled] = useState(true);
+  const [speedLevel, setSpeedLevel] = useState<SpeedLevel>('normal');
   
   const moveIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const spawnIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const gameStateRef = useRef(gameState);
+  const isFastFallingRef = useRef(false);
   
   // Keep ref in sync with state
   gameStateRef.current = gameState;
+
+  // Get current speed settings
+  const currentSpeedSettings = SPEED_LEVELS[speedLevel];
 
   // Derived state
   const board = createBoard(gameState);
@@ -87,6 +92,25 @@ export function useGameController() {
     });
   }, [showToastAndSpeak]);
 
+  // Fast fall controls
+  const startFastFall = useCallback(() => {
+    if (isFastFallingRef.current) return;
+    isFastFallingRef.current = true;
+    if (moveIntervalRef.current) {
+      clearInterval(moveIntervalRef.current);
+    }
+    moveIntervalRef.current = setInterval(updatePosition, FAST_FALL_SPEED);
+  }, [updatePosition]);
+
+  const stopFastFall = useCallback(() => {
+    if (!isFastFallingRef.current) return;
+    isFastFallingRef.current = false;
+    if (moveIntervalRef.current) {
+      clearInterval(moveIntervalRef.current);
+    }
+    moveIntervalRef.current = setInterval(updatePosition, currentSpeedSettings.fallSpeed);
+  }, [updatePosition, currentSpeedSettings.fallSpeed]);
+
   // Keyboard handler
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
     switch (e.key) {
@@ -104,24 +128,16 @@ export function useGameController() {
         break;
       case " ":
         e.preventDefault();
-        // Fast fall
-        if (moveIntervalRef.current) {
-          clearInterval(moveIntervalRef.current);
-        }
-        moveIntervalRef.current = setInterval(updatePosition, FAST_FALL_SPEED);
+        startFastFall();
         break;
     }
-  }, [moveActiveLetter, updatePosition]);
+  }, [moveActiveLetter, startFastFall]);
 
   const handleKeyUp = useCallback((e: KeyboardEvent) => {
     if (e.key === " ") {
-      // Reset to normal speed
-      if (moveIntervalRef.current) {
-        clearInterval(moveIntervalRef.current);
-      }
-      moveIntervalRef.current = setInterval(updatePosition, NORMAL_FALL_SPEED);
+      stopFastFall();
     }
-  }, [updatePosition]);
+  }, [stopFastFall]);
 
   // Setup keyboard listeners
   useEffect(() => {
@@ -133,21 +149,31 @@ export function useGameController() {
     };
   }, [handleKeyDown, handleKeyUp]);
 
-  // Setup fall interval
+  // Setup fall interval - updates when speed changes
   useEffect(() => {
-    moveIntervalRef.current = setInterval(updatePosition, NORMAL_FALL_SPEED);
+    if (moveIntervalRef.current) {
+      clearInterval(moveIntervalRef.current);
+    }
+    moveIntervalRef.current = setInterval(updatePosition, currentSpeedSettings.fallSpeed);
     return () => {
       if (moveIntervalRef.current) {
         clearInterval(moveIntervalRef.current);
       }
     };
-  }, [updatePosition]);
+  }, [updatePosition, currentSpeedSettings.fallSpeed]);
 
-  // Setup spawn interval
+  // Setup spawn interval - updates when speed changes
   useEffect(() => {
-    const spawnInterval = setInterval(spawnNewLetter, SPAWN_INTERVAL);
-    return () => clearInterval(spawnInterval);
-  }, [spawnNewLetter]);
+    if (spawnIntervalRef.current) {
+      clearInterval(spawnIntervalRef.current);
+    }
+    spawnIntervalRef.current = setInterval(spawnNewLetter, currentSpeedSettings.spawnInterval);
+    return () => {
+      if (spawnIntervalRef.current) {
+        clearInterval(spawnIntervalRef.current);
+      }
+    };
+  }, [spawnNewLetter, currentSpeedSettings.spawnInterval]);
 
   // Helper functions for view
   const isTargetPosition = useCallback((row: number, col: number): boolean => {
@@ -168,10 +194,15 @@ export function useGameController() {
     isWordCompleted: gameState.isWordCompleted,
     soundEnabled,
     currentWord: gameState.currentWord,
+    speedLevel,
     
     // Actions
     toggleSound,
     speak,
+    setSpeedLevel,
+    moveActiveLetter,
+    startFastFall,
+    stopFastFall,
     
     // Helpers
     isTargetPosition,
