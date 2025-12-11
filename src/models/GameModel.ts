@@ -4,9 +4,9 @@ import { ALPHABET, GRID_HEIGHT, GRID_WIDTH, TARGET_ROW } from "@/constants/gameC
 import { getRandomWord } from "@/constants/wordBank";
 
 const BOOK_MIN_ROW = 3;
-const BOOK_MAX_ROW = 7;
+const BOOK_MAX_ROW = 6; // Max 6 to leave clearance above target row 8
 const FIRE_MIN_ROW = 2;
-const FIRE_MAX_ROW = 6;
+const FIRE_MAX_ROW = 6; // Max 6 to leave clearance above target row 8
 
 export interface GameModelState {
   activeLetter: ActiveLetter | null;
@@ -26,16 +26,29 @@ export interface MoveResult {
   letter?: string;
 }
 
+// Get allowed X positions (avoiding target word columns)
+const getAllowedXPositions = (currentWord: string): number[] => {
+  const targetPositions = getTargetPositions(currentWord);
+  const forbiddenX = new Set(targetPositions.map(p => p.x));
+  return Array.from({ length: GRID_WIDTH }, (_, i) => i).filter(x => !forbiddenX.has(x));
+};
+
 // Pure functions for game logic
-export const getRandomBookPosition = (): Position => {
+export const getRandomBookPosition = (currentWord: string): Position => {
+  const allowedX = getAllowedXPositions(currentWord);
+  const x = allowedX.length > 0 
+    ? allowedX[Math.floor(Math.random() * allowedX.length)]
+    : Math.floor(Math.random() * GRID_WIDTH);
   const y = Math.floor(Math.random() * (BOOK_MAX_ROW - BOOK_MIN_ROW + 1)) + BOOK_MIN_ROW;
-  const x = Math.floor(Math.random() * GRID_WIDTH);
   return { x, y };
 };
 
-export const getRandomFirePosition = (): Position => {
+export const getRandomFirePosition = (currentWord: string, bookPosition: Position): Position => {
+  const allowedX = getAllowedXPositions(currentWord).filter(x => x !== bookPosition.x);
+  const x = allowedX.length > 0 
+    ? allowedX[Math.floor(Math.random() * allowedX.length)]
+    : Math.floor(Math.random() * GRID_WIDTH);
   const y = Math.floor(Math.random() * (FIRE_MAX_ROW - FIRE_MIN_ROW + 1)) + FIRE_MIN_ROW;
-  const x = Math.floor(Math.random() * GRID_WIDTH);
   return { x, y };
 };
 
@@ -50,6 +63,8 @@ export const getTargetPositions = (word: string): (Position & { letter: string }
 
 export const createInitialState = (): GameModelState => {
   const { word } = getRandomWord();
+  const bookPosition = getRandomBookPosition(word);
+  const firePosition = getRandomFirePosition(word, bookPosition);
   return {
     activeLetter: null,
     placedLetters: [],
@@ -57,22 +72,24 @@ export const createInitialState = (): GameModelState => {
     collectedLetters: [],
     burnedLetters: [],
     isWordCompleted: false,
-    bookPosition: getRandomBookPosition(),
-    firePosition: getRandomFirePosition(),
+    bookPosition,
+    firePosition,
     currentWord: word,
   };
 };
 
 export const startNewRound = (state: GameModelState): GameModelState => {
   const { word } = getRandomWord();
+  const bookPosition = getRandomBookPosition(word);
+  const firePosition = getRandomFirePosition(word, bookPosition);
   return {
     ...state,
     activeLetter: null,
     placedLetters: [],
     matchedLetters: [],
     isWordCompleted: false,
-    bookPosition: getRandomBookPosition(),
-    firePosition: getRandomFirePosition(),
+    bookPosition,
+    firePosition,
     currentWord: word,
   };
 };
