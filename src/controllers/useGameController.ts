@@ -19,7 +19,7 @@ const FAST_FALL_SPEED = 100;
 export function useGameController() {
   const { toast } = useToast();
   const [gameState, setGameState] = useState<GameModelState>(createInitialState);
-  const [soundEnabled, setSoundEnabled] = useState(true);
+  const [soundEnabled, setSoundEnabled] = useState(() => soundModel.isEnabled());
   const [speedLevel, setSpeedLevel] = useState<SpeedLevel>('normal');
   
   const moveIntervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -39,17 +39,25 @@ export function useGameController() {
 
   // Sound functions
   const speak = useCallback((text: string) => {
-    soundModel.speak(text);
+    if (soundModel.isEnabled()) {
+      soundModel.speak(text);
+    }
   }, []);
 
   const showToastAndSpeak = useCallback((title: string, description: string) => {
     toast({ title, description });
-    speak(description);
-  }, [toast, speak]);
+    if (soundModel.isEnabled()) {
+      soundModel.speak(description);
+    }
+  }, [toast]);
 
   const toggleSound = useCallback(() => {
     const newEnabled = soundModel.toggle();
     setSoundEnabled(newEnabled);
+    // Cancel any ongoing speech when turning off
+    if (!newEnabled) {
+      window.speechSynthesis.cancel();
+    }
   }, []);
 
   // Game actions
