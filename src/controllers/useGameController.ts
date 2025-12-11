@@ -73,29 +73,23 @@ export function useGameController() {
   }, []);
 
   const updatePosition = useCallback(() => {
-    let eventToHandle: { event: string; letter?: string } | null = null;
+    // Use ref to get current state synchronously (avoids React batching issues)
+    const currentState = gameStateRef.current;
+    const result = updateLetterPosition(currentState);
     
-    setGameState(current => {
-      const result = updateLetterPosition(current);
-      
-      // Store event for handling AFTER state update
-      if (result.event !== 'none') {
-        eventToHandle = { event: result.event, letter: result.letter };
-      }
-      
-      return result.newState;
-    });
+    // Only update if state changed
+    if (result.newState !== currentState) {
+      setGameState(result.newState);
+    }
     
-    // Handle events OUTSIDE of setState to avoid render-phase updates
-    setTimeout(() => {
-      if (!eventToHandle) return;
-      
-      switch (eventToHandle.event) {
+    // Handle events synchronously with correct letter
+    if (result.event !== 'none' && result.letter) {
+      switch (result.event) {
         case 'collected':
-          showToastAndSpeak("Ny bokstav! 📚", `Du samlade bokstaven ${eventToHandle.letter}!`);
+          showToastAndSpeak("Ny bokstav! 📚", `Du samlade bokstaven ${result.letter}!`);
           break;
         case 'burned':
-          showToastAndSpeak("Bokstav bränd! 🔥", `Bokstaven ${eventToHandle.letter} brann upp!`);
+          showToastAndSpeak("Bokstav bränd! 🔥", `Bokstaven ${result.letter} brann upp!`);
           break;
         case 'matched':
           // Optional: sound for match
@@ -107,7 +101,7 @@ export function useGameController() {
           }, 2000);
           break;
       }
-    }, 0);
+    }
   }, [showToastAndSpeak]);
 
   // Fast fall controls
