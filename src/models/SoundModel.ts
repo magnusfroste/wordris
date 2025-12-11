@@ -1,7 +1,7 @@
 // SoundModel - Ren ljudlogik utan React
 
 class SoundModel {
-  private enabled: boolean = true;
+  private enabled: boolean = false; // Ljud avstängt som default
 
   isEnabled(): boolean {
     return this.enabled;
