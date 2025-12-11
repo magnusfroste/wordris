@@ -193,6 +193,11 @@ export function useGameController() {
     };
   }, [spawnNewLetter, currentSpeedSettings.spawnInterval]);
 
+  // Restart game
+  const restartGame = useCallback(() => {
+    setGameState(createInitialState());
+  }, []);
+
   // Helper functions for view
   const isTargetPosition = useCallback((row: number, col: number): boolean => {
     return targetPositions.some(pos => pos.x === col && pos.y === row);
@@ -221,6 +226,7 @@ export function useGameController() {
     moveActiveLetter,
     startFastFall,
     stopFastFall,
+    restartGame,
     
     // Helpers
     isTargetPosition,
