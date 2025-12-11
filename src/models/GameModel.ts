@@ -176,8 +176,15 @@ export const updateLetterPosition = (state: GameModelState): MoveResult => {
     };
   }
 
-  // Check book collision
-  if (activeLetter.position.x === bookPosition.x && activeLetter.position.y === bookPosition.y - 1) {
+  // Check book collision (can collect from above or from the sides)
+  const isNearBook = (
+    // Directly above book (falling into it)
+    (activeLetter.position.x === bookPosition.x && activeLetter.position.y === bookPosition.y - 1) ||
+    // Same row as book and adjacent horizontally (moving into it from side)
+    (activeLetter.position.y === bookPosition.y && Math.abs(activeLetter.position.x - bookPosition.x) <= 1)
+  );
+  
+  if (isNearBook) {
     return {
       newState: {
         ...state,
@@ -189,8 +196,15 @@ export const updateLetterPosition = (state: GameModelState): MoveResult => {
     };
   }
 
-  // Check fire collision
-  if (activeLetter.position.x === firePosition.x && activeLetter.position.y === firePosition.y - 1) {
+  // Check fire collision (can burn from above or from the sides)
+  const isNearFire = (
+    // Directly above fire
+    (activeLetter.position.x === firePosition.x && activeLetter.position.y === firePosition.y - 1) ||
+    // Same row as fire and adjacent horizontally
+    (activeLetter.position.y === firePosition.y && Math.abs(activeLetter.position.x - firePosition.x) <= 1)
+  );
+  
+  if (isNearFire) {
     return {
       newState: {
         ...state,
