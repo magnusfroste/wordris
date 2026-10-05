@@ -1,0 +1,10 @@
+# Ord-Nisse (Wordris)
+
+> Ett ordspel för barn där man styr fallande bokstäver och bildar ord.
+
+Wordris är ett lärorikt ordspel på svenska för barn som håller på att lära sig läsa och stava. Bokstäver faller från himlen och spelaren styr dem för att bilda ordet, samlar bokstäver i sin bok och tjänar stjärnor. Nya ord varje runda, och spelet fungerar på både dator och mobil utan inloggning. Ingår i [skolappar.com](https://www.skolappar.com), lärappar byggda av föräldrar.
+
+## Länkar
+
+- [Spela Ord-Nisse](https://wordris.skolappar.com/)
+- [Fler lärappar på skolappar.com](https://www.skolappar.com)
