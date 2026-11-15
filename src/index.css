@@ -19,10 +19,14 @@
     --secondary: var(--game-secondary);
     --secondary-foreground: 222.2 47.4% 11.2%;
     --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted-foreground: 215.4 20% 36%;
+    --fire: 22 90% 42%;
+    --success: 142 72% 27%;
+    --success-foreground: 0 0% 100%;
+    --target: 263 70% 35%;
     --accent: 210 40% 96.1%;
     --accent-foreground: 222.2 47.4% 11.2%;
-    --destructive: 0 84.2% 60.2%;
+    --destructive: 0 72% 42%;
     --destructive-foreground: 210 40% 98%;
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
@@ -48,7 +52,11 @@
     --primary: 263 84% 50%;
     --primary-foreground: 210 40% 98%;
     --secondary: 47 96% 60%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --fire: 25 95% 60%;
+    --success: 142 72% 30%;
+    --success-foreground: 0 0% 100%;
+    --target: 263 90% 80%;
     --muted: 217.2 32.6% 17.5%;
     --muted-foreground: 215 20.2% 65.1%;
     --accent: 217.2 32.6% 17.5%;
@@ -72,14 +80,26 @@
     @apply border-border;
   }
 
+  html, body {
+    overflow-x: hidden;
+  }
+
   body {
     @apply bg-background text-foreground;
+    touch-action: manipulation; /* förhindrar dubbeltrycks-zoom under spel */
+    overscroll-behavior: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  :focus-visible {
+    outline: 3px solid hsl(var(--ring));
+    outline-offset: 2px;
   }
 }
 
 @layer utilities {
   .letter-block {
-    @apply flex items-center justify-center w-12 h-12 text-2xl font-bold rounded-lg;
+    @apply flex items-center justify-center w-9 h-9 text-lg sm:w-12 sm:h-12 sm:text-2xl font-bold rounded-lg;
     box-shadow: 0 2px 4px hsl(var(--foreground) / 0.1);
     transition: transform 150ms ease-out, background-color 150ms ease-out, color 150ms ease-out, box-shadow 150ms ease-out;
     will-change: transform, background-color, box-shadow;
@@ -114,5 +134,13 @@
   }
   50% { 
     transform: translateX(-50%) scaleY(1.1) scaleX(0.9);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }

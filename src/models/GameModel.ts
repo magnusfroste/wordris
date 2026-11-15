@@ -1,6 +1,6 @@
 // GameModel - Ren affärslogik utan React
 import { Position, ActiveLetter, PlacedLetter, Direction } from "@/types/gameTypes";
-import { ALPHABET, GRID_HEIGHT, GRID_WIDTH, TARGET_ROW } from "@/constants/gameConstants";
+import { ALPHABET, GRID_HEIGHT, GRID_WIDTH, TARGET_ROW, MAX_BURNED } from "@/constants/gameConstants";
 import { getRandomWord } from "@/constants/wordBank";
 
 const BOOK_MIN_ROW = 3;
@@ -18,11 +18,14 @@ export interface GameModelState {
   bookPosition: Position;
   firePosition: Position;
   currentWord: string;
+  score: number;
+  wordsCompleted: number;
+  isGameOver: boolean;
 }
 
 export interface MoveResult {
   newState: GameModelState;
-  event: 'none' | 'collected' | 'burned' | 'matched' | 'completed' | 'landed';
+  event: 'none' | 'gameover' | 'collected' | 'burned' | 'matched' | 'completed' | 'landed';
   letter?: string;
 }
 
@@ -75,6 +78,19 @@ export const createInitialState = (): GameModelState => {
     bookPosition,
     firePosition,
     currentWord: word,
+    score: 0,
+    wordsCompleted: 0,
+    isGameOver: false,
+  };
+};
+
+const burnLetter = (state: GameModelState, letter: string): MoveResult => {
+  const burnedLetters = [...state.burnedLetters, letter];
+  const isGameOver = burnedLetters.length >= MAX_BURNED;
+  return {
+    newState: { ...state, activeLetter: null, burnedLetters, isGameOver },
+    event: isGameOver ? 'gameover' : 'burned',
+    letter,
   };
 };
 
@@ -95,7 +111,7 @@ export const startNewRound = (state: GameModelState): GameModelState => {
 };
 
 export const spawnLetter = (state: GameModelState): GameModelState | null => {
-  if (state.activeLetter || state.isWordCompleted) return null;
+  if (state.activeLetter || state.isWordCompleted || state.isGameOver) return null;
 
   const randomX = Math.floor(Math.random() * GRID_WIDTH);
   const randomLetter = ALPHABET[Math.floor(Math.random() * ALPHABET.length)];
@@ -137,7 +153,7 @@ export const calculateNewPosition = (
 };
 
 export const moveLetter = (state: GameModelState, direction: Direction): GameModelState => {
-  if (!state.activeLetter) return state;
+  if (!state.activeLetter || state.isGameOver) return state;
 
   const newPosition = calculateNewPosition(
     state.activeLetter.position.x,
@@ -155,7 +171,7 @@ export const moveLetter = (state: GameModelState, direction: Direction): GameMod
 };
 
 export const updateLetterPosition = (state: GameModelState): MoveResult => {
-  if (!state.activeLetter) {
+  if (!state.activeLetter || state.isGameOver) {
     return { newState: state, event: 'none' };
   }
 
@@ -165,15 +181,7 @@ export const updateLetterPosition = (state: GameModelState): MoveResult => {
 
   // Check if letter hits bottom fire row
   if (newY === GRID_HEIGHT - 1) {
-    return {
-      newState: {
-        ...state,
-        activeLetter: null,
-        burnedLetters: [...state.burnedLetters, letter]
-      },
-      event: 'burned',
-      letter
-    };
+    return burnLetter(state, letter);
   }
 
   // Check book collision (can collect from above or from the sides)
@@ -205,15 +213,7 @@ export const updateLetterPosition = (state: GameModelState): MoveResult => {
   );
   
   if (isNearFire) {
-    return {
-      newState: {
-        ...state,
-        activeLetter: null,
-        burnedLetters: [...state.burnedLetters, letter]
-      },
-      event: 'burned',
-      letter
-    };
+    return burnLetter(state, letter);
   }
 
   // Check target word match
@@ -249,7 +249,9 @@ export const updateLetterPosition = (state: GameModelState): MoveResult => {
           { letter, position: { x: targetPos.x, y: targetPos.y } }
         ],
         matchedLetters: newMatchedLetters,
-        isWordCompleted: isCompleted
+        isWordCompleted: isCompleted,
+        score: state.score + (isCompleted ? currentWord.length * 10 : 0),
+        wordsCompleted: state.wordsCompleted + (isCompleted ? 1 : 0),
       },
       event: isCompleted ? 'completed' : 'matched',
       letter

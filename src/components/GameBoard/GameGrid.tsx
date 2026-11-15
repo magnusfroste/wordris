@@ -9,7 +9,7 @@ interface GameGridProps {
 
 const GameGrid = ({ board, isTargetPosition, isMatchedPosition }: GameGridProps) => {
   return (
-    <div className="relative bg-card/80 backdrop-blur-sm rounded-2xl p-4 shadow-xl">
+    <div className="relative bg-card/80 backdrop-blur-sm rounded-2xl p-2 sm:p-4 shadow-xl">
       <div className="grid gap-1" style={{ gridTemplateRows: `repeat(${board.length}, 1fr)` }}>
         {board.map((row, rowIndex) => (
           <div key={rowIndex} className="grid grid-cols-7 gap-1">

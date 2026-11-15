@@ -26,6 +26,11 @@ export function useGameController() {
   const spawnIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const gameStateRef = useRef(gameState);
   const isFastFallingRef = useRef(false);
+  const newRoundTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [isPaused, setIsPaused] = useState(false);
+  const isRunning = !isPaused && !gameState.isGameOver;
+  const isRunningRef = useRef(isRunning);
+  isRunningRef.current = isRunning;
   
   // Keep ref in sync with state
   gameStateRef.current = gameState;
@@ -69,6 +74,7 @@ export function useGameController() {
   }, []);
 
   const moveActiveLetter = useCallback((direction: Direction) => {
+    if (!isRunningRef.current) return;
     setGameState(current => moveLetter(current, direction));
   }, []);
 
@@ -89,14 +95,18 @@ export function useGameController() {
           showToastAndSpeak("Ny bokstav! 📚", `Du samlade bokstaven ${result.letter}!`);
           break;
         case 'burned':
-          showToastAndSpeak("Bokstav bränd! 🔥", `Bokstaven ${result.letter} brann upp!`);
+          showToastAndSpeak("Oj, elden! 🔥", `Bokstaven ${result.letter} brann upp.`);
+          break;
+        case 'gameover':
+          showToastAndSpeak("Spelet är slut", "För många bokstäver brann upp. Tryck på Spela igen!");
           break;
         case 'matched':
           // Optional: sound for match
           break;
         case 'completed':
-          showToastAndSpeak("Grattis! 🎉", "Du klarade ordet! Nytt ord kommer...");
-          setTimeout(() => {
+          showToastAndSpeak("Grattis! 🎉", "Du klarade ordet! Ett nytt ord kommer snart.");
+          if (newRoundTimeoutRef.current) clearTimeout(newRoundTimeoutRef.current);
+          newRoundTimeoutRef.current = setTimeout(() => {
             setGameState(current => startNewRound(current));
           }, 2000);
           break;
@@ -106,7 +116,7 @@ export function useGameController() {
 
   // Fast fall controls
   const startFastFall = useCallback(() => {
-    if (isFastFallingRef.current) return;
+    if (isFastFallingRef.current || !isRunningRef.current) return;
     isFastFallingRef.current = true;
     if (moveIntervalRef.current) {
       clearInterval(moveIntervalRef.current);
@@ -120,6 +130,7 @@ export function useGameController() {
     if (moveIntervalRef.current) {
       clearInterval(moveIntervalRef.current);
     }
+    if (!isRunningRef.current) return;
     moveIntervalRef.current = setInterval(updatePosition, currentSpeedSettings.fallSpeed);
   }, [updatePosition, currentSpeedSettings.fallSpeed]);
 
@@ -127,18 +138,23 @@ export function useGameController() {
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
     switch (e.key) {
       case "ArrowLeft":
+        e.preventDefault();
         moveActiveLetter("left");
         break;
       case "ArrowRight":
+        e.preventDefault();
         moveActiveLetter("right");
         break;
       case "ArrowUp":
+        e.preventDefault();
         moveActiveLetter("up");
         break;
       case "ArrowDown":
+        e.preventDefault();
         moveActiveLetter("down");
         break;
       case " ":
+        if ((e.target as HTMLElement)?.tagName === "BUTTON") return;
         e.preventDefault();
         startFastFall();
         break;
@@ -166,29 +182,52 @@ export function useGameController() {
     if (moveIntervalRef.current) {
       clearInterval(moveIntervalRef.current);
     }
+    if (!isRunning) return;
+    isFastFallingRef.current = false;
     moveIntervalRef.current = setInterval(updatePosition, currentSpeedSettings.fallSpeed);
     return () => {
       if (moveIntervalRef.current) {
         clearInterval(moveIntervalRef.current);
       }
     };
-  }, [updatePosition, currentSpeedSettings.fallSpeed]);
+  }, [updatePosition, currentSpeedSettings.fallSpeed, isRunning]);
 
   // Setup spawn interval - updates when speed changes
   useEffect(() => {
     if (spawnIntervalRef.current) {
       clearInterval(spawnIntervalRef.current);
     }
+    if (!isRunning) return;
     spawnIntervalRef.current = setInterval(spawnNewLetter, currentSpeedSettings.spawnInterval);
     return () => {
       if (spawnIntervalRef.current) {
         clearInterval(spawnIntervalRef.current);
       }
     };
-  }, [spawnNewLetter, currentSpeedSettings.spawnInterval]);
+  }, [spawnNewLetter, currentSpeedSettings.spawnInterval, isRunning]);
+
+  // Pausa när fliken döljs
+  useEffect(() => {
+    const onVisibility = () => {
+      if (document.hidden) {
+        setIsPaused(true);
+        window.speechSynthesis?.cancel();
+      }
+    };
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => document.removeEventListener("visibilitychange", onVisibility);
+  }, []);
+
+  useEffect(() => () => {
+    if (newRoundTimeoutRef.current) clearTimeout(newRoundTimeoutRef.current);
+  }, []);
+
+  const togglePause = useCallback(() => setIsPaused(p => !p), []);
 
   // Restart game
   const restartGame = useCallback(() => {
+    if (newRoundTimeoutRef.current) clearTimeout(newRoundTimeoutRef.current);
+    setIsPaused(false);
     setGameState(createInitialState());
   }, []);
 
@@ -212,8 +251,13 @@ export function useGameController() {
     soundEnabled,
     currentWord: gameState.currentWord,
     speedLevel,
+    score: gameState.score,
+    wordsCompleted: gameState.wordsCompleted,
+    isGameOver: gameState.isGameOver,
+    isPaused,
     
     // Actions
+    togglePause,
     toggleSound,
     speak,
     setSpeedLevel,

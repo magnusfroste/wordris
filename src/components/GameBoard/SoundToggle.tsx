@@ -9,13 +9,14 @@ const SoundToggle = ({ enabled, onToggle }: SoundToggleProps) => {
   return (
     <button
       onClick={onToggle}
-      className="flex items-center gap-2 px-4 py-2 rounded-lg bg-card hover:bg-muted transition-colors text-sm font-medium shadow-sm"
-      aria-label={enabled ? "Stäng av ljud" : "Sätt på ljud"}
-    >
+      type="button"
+      aria-pressed={enabled}
+      className="flex min-h-11 items-center gap-2 px-4 py-2 rounded-lg bg-card hover:bg-muted transition-colors text-sm font-medium shadow-sm"
+          >
       {enabled ? (
-        <Volume2 className="w-5 h-5 text-primary" />
+        <Volume2 className="w-5 h-5 text-primary" aria-hidden="true" />
       ) : (
-        <VolumeX className="w-5 h-5 text-muted-foreground" />
+        <VolumeX className="w-5 h-5 text-muted-foreground" aria-hidden="true" />
       )}
       <span className="text-foreground">{enabled ? "Ljud på" : "Ljud av"}</span>
     </button>
