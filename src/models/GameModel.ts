@@ -110,11 +110,38 @@ export const startNewRound = (state: GameModelState): GameModelState => {
   };
 };
 
+const LETTER_BIAS = 0.75;
+
+// Bokstäverna i ordet som ännu inte är matchade – resten av multisetet.
+export const getRemainingWordLetters = (state: GameModelState): string[] => {
+  const remaining: string[] = [];
+  const used = [...state.matchedLetters.map((m) => m.letter)];
+  for (const letter of state.currentWord.split("")) {
+    const i = used.indexOf(letter);
+    if (i >= 0) used.splice(i, 1);
+    else remaining.push(letter);
+  }
+  return remaining;
+};
+
+// Väljer nästa bokstav. Med LETTER_BIAS sannolikhet tas en bokstav som
+// fortfarande behövs för ordet, annars en slumpad – aldrig en som redan bränts.
+export const pickSpawnLetter = (state: GameModelState): string => {
+  const burned = new Set(state.burnedLetters);
+  const remaining = getRemainingWordLetters(state).filter((l) => !burned.has(l));
+  if (remaining.length > 0 && Math.random() < LETTER_BIAS) {
+    return remaining[Math.floor(Math.random() * remaining.length)];
+  }
+  const pool = ALPHABET.filter((l) => !burned.has(l));
+  const source = pool.length > 0 ? pool : ALPHABET;
+  return source[Math.floor(Math.random() * source.length)];
+};
+
 export const spawnLetter = (state: GameModelState): GameModelState | null => {
   if (state.activeLetter || state.isWordCompleted || state.isGameOver) return null;
 
   const randomX = Math.floor(Math.random() * GRID_WIDTH);
-  const randomLetter = ALPHABET[Math.floor(Math.random() * ALPHABET.length)];
+  const randomLetter = pickSpawnLetter(state);
 
   return {
     ...state,
