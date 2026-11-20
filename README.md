@@ -6,6 +6,8 @@ sparas i boken, men de som hamnar i elden brinner upp.
 
 **Spela:** https://ordspel.skolappar.com · En del av [Skolappar](https://www.skolappar.com) – pedagogiska appar av föräldrar · öppen källkod (MIT)
 
+![Wordris](public/kort.png)
+
 Började som ett Lovable-projekt och körs nu fristående.
 
 ## Vad du kan göra
