@@ -1,59 +1,73 @@
-# Wordris ⌨️
+# Wordris
 
-A fun word puzzle game where you steer falling letters to form words. Collect letters in your book and earn stars as you complete new words each round!
+Wordris är ordtetris för nybörjarläsare i låg- och mellanstadiet. Bokstäver faller ner på
+spelplanen och barnet styr dem till rätt plats för att bilda ett svenskt ord. Bokstäver kan
+sparas i boken, men de som hamnar i elden brinner upp.
 
-**Published on [skolappar.com](https://www.skolappar.com) - Democratizing learning apps, built by vibe-coding parents who love helping their kids learn!**
+**Spela:** https://ordspel.skolappar.com · En del av [Skolappar](https://www.skolappar.com) – pedagogiska appar av föräldrar · öppen källkod (MIT)
 
-## Features
+Började som ett Lovable-projekt och körs nu fristående.
 
-- **Falling Letters**: Catch letters falling from the sky
-- **Word Formation**: Create words from collected letters
-- **Book Collection**: Save letters in your book
-- **Star System**: Earn stars for completing words
-- **New Words Every Round**: Fresh challenges each time
-- **Responsive Design**: Works on desktop and mobile
+## Vad du kan göra
 
-## Getting Started
+- **Bilda ord** av fallande bokstäver på en spelplan med 7 × 12 rutor. Orden är högst sju
+  bokstäver och kommer från fem kategorier: kända figurer, städer, djur, mat och julord.
+- **Styr** med piltangenterna och håll in mellanslag för att släppa snabbt. På mobil och
+  surfplatta finns stora knappar under spelplanen.
+- **Boken**: styr en bokstav dit för att spara den. Tryck på en sparad bokstav så läses den upp.
+- **Elden**: bokstäver som når elden brinner upp. När tio bokstäver har brunnit är spelet slut.
+- **Smart slump**: de flesta nya bokstäver hör till ordet, och brända bokstäver kommer inte
+  tillbaka.
+- **Tre hastigheter**: lätt, normal och svår.
+- **Uppläsning** av händelser med webbläsarens svenska röst. Ljudet går att stänga av.
+- Paus, starta om, poäng och antal klarade ord.
 
-### Prerequisites
-
-- Node.js (v18 or higher)
-- npm or yarn
-
-### Installation
+## Kom igång
 
 ```bash
 npm install
+npm run dev        # utvecklingsserver
+npm run build      # produktionsbygge till dist/
+npm run build:dev  # bygge i utvecklingsläge
+npm run preview    # förhandsgranska bygget
+npm run lint       # eslint
 ```
 
-### Run Locally
+Docker-bygget använder Node 22. Spellogiken har tester i `src/models/*.test.ts`. De körs med
+`npx vitest run`, eftersom det inte finns något npm-skript för dem.
+
+## Docker
 
 ```bash
-npm run dev
+docker build -t wordris .
+docker run --rm -p 8080:8080 wordris
 ```
 
-### Build for Production
+Bygget serveras av nginx med `deploy/nginx.conf`.
 
-```bash
-npm run build
+## Integritet
+
+- Inget konto, ingen inloggning, inga kakor och ingen analys.
+- Inga anrop till externa servrar, och ingenting sparas på enheten (ingen `localStorage`).
+- Uppläsningen använder webbläsarens inbyggda talsyntes (`speechSynthesis`).
+- Typsnittet Fredoka följer med appen (`public/fonts/`).
+
+## Struktur
+
+```
+index.html                      startskärm, metadata
+src/
+  pages/Index.tsx               sidan med spelet
+  controllers/useGameController.ts  spelloop, tangentbord, händelser
+  models/GameModel.ts           spelregler: fall, bok, eld, ord, bokstavsurval
+  models/SoundModel.ts          uppläsning
+  constants/gameConstants.ts    planens storlek, hastigheter, max antal brända
+  constants/wordBank.ts         ordlistan
+  components/GameBoard/         spelplan, hastighet, ljudknapp, touchkontroller
+  components/SidePanel/         sparade och brända bokstäver
+deploy/nginx.conf               nginx-konfiguration för containern
 ```
 
-## How to Play
+## Licens
 
-1. Use arrow keys to steer falling letters
-2. Collect letters in your book to save them
-3. Form words from your collected letters
-4. Earn stars for each completed word
-5. New words appear each round
-
-## Tech Stack
-
-- **React 19** - UI framework
-- **TypeScript** - Type safety
-- **Vite** - Build tool
-- **shadcn/ui** - Components
-- **Tailwind CSS** - Styling
-
-## License
-
-MIT
+MIT – se [LICENSE](LICENSE).
