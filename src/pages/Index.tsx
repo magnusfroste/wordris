@@ -1,6 +1,5 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import GameBoard from "@/components/GameBoard/GameBoard";
-import { useToast } from "@/hooks/use-toast";
 import { Info } from "lucide-react";
 import {
   Popover,
@@ -9,16 +8,34 @@ import {
 } from "@/components/ui/popover";
 import { Book, Star, Flame, ArrowDown } from "lucide-react";
 
+const HINT_KEY = "wordris-hint-visad";
+
 const Index = () => {
-  const { toast } = useToast();
-  
+  // Första gången: en rad ovanför spelplanen i stället för en toast som la sig
+  // över bokstäverna. Den försvinner så fort barnet trycker på den och kommer
+  // aldrig tillbaka.
+  const [showHint, setShowHint] = useState(() => {
+    try {
+      return localStorage.getItem(HINT_KEY) !== "1";
+    } catch {
+      return true;
+    }
+  });
+
+  const hideHint = () => {
+    setShowHint(false);
+    try {
+      localStorage.setItem(HINT_KEY, "1");
+    } catch {
+      /* privat läge: tipset får komma tillbaka nästa gång */
+    }
+  };
+
   useEffect(() => {
-    toast({
-      title: "Välkommen till Wordris!",
-      description: "Styr bokstäverna och bilda ordet. Det kommer ett nytt ord varje runda!",
-    });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    if (!showHint) return;
+    const t = setTimeout(hideHint, 12000);
+    return () => clearTimeout(t);
+  }, [showHint]);
 
   return (
     <main className="min-h-dvh bg-background flex flex-col items-center justify-center px-2 py-4 sm:p-4">
@@ -63,6 +80,15 @@ const Index = () => {
           </PopoverContent>
         </Popover>
       </div>
+      {showHint && (
+        <button
+          type="button"
+          onClick={hideHint}
+          className="mb-3 max-w-md rounded-xl bg-primary/10 px-4 py-2 text-center text-base text-primary"
+        >
+          Styr bokstäverna med pilarna och bilda ordet. Tryck här för att börja.
+        </button>
+      )}
       <div className="flex justify-center w-full">
         <div className="w-full max-w-5xl">
           <GameBoard />
