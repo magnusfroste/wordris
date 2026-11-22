@@ -8,7 +8,7 @@ sparas i boken, men de som hamnar i elden brinner upp.
 
 ![Wordris](public/kort.png)
 
-Började som ett Lovable-projekt och körs nu fristående.
+Körs fristående.
 
 ## Vad du kan göra
 
