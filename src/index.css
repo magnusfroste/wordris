@@ -155,3 +155,10 @@
 html, body, button, input, select, textarea {
   font-family: 'Fredoka', 'Nunito', system-ui, -apple-system, 'Segoe UI', sans-serif;
 }
+
+/* ---- iPad landskap: sista iPad-rundan, startskärmen var 324 px för hög ---- */
+@media (min-width: 820px) and (max-height: 860px) {
+  main.min-h-dvh { zoom: 0.70; }
+  main.min-h-dvh > div:first-child { margin-bottom: 0.4rem; }
+  main.min-h-dvh > footer { margin-top: 0.4rem; }
+}
