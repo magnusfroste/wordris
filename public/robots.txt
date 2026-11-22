@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://wordris.shipholm.dev/sitemap.xml
+Sitemap: https://wordris.skolappar.com/sitemap.xml
