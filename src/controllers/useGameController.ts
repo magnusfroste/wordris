@@ -13,6 +13,7 @@ import {
 } from "@/models/GameModel";
 import { soundModel } from "@/models/SoundModel";
 import { SPEED_LEVELS, SpeedLevel } from "@/constants/gameConstants";
+import { report } from "@/lib/skolappar";
 
 const FAST_FALL_SPEED = 100;
 
@@ -62,6 +63,7 @@ export function useGameController() {
     // Cancel any ongoing speech when turning off
     if (!newEnabled) {
       window.speechSynthesis.cancel();
+      report("sound_off");
     }
   }, []);
 
@@ -98,15 +100,19 @@ export function useGameController() {
           showToastAndSpeak("Oj, elden! 🔥", `Bokstaven ${result.letter} brann upp.`);
           break;
         case 'gameover':
+          // The word was not finished: the result is how much of it was in place.
+          report("round_done", Math.round((currentState.matchedLetters.length / currentState.currentWord.length) * 100));
           showToastAndSpeak("Spelet är slut", "För många bokstäver brann upp. Tryck på Spela igen!");
           break;
         case 'matched':
           // Optional: sound for match
           break;
         case 'completed':
+          report("round_done", 100);
           showToastAndSpeak("Grattis! 🎉", "Du klarade ordet! Ett nytt ord kommer snart.");
           if (newRoundTimeoutRef.current) clearTimeout(newRoundTimeoutRef.current);
           newRoundTimeoutRef.current = setTimeout(() => {
+            report("round_start");
             setGameState(current => startNewRound(current));
           }, 2000);
           break;
@@ -222,6 +228,11 @@ export function useGameController() {
     if (newRoundTimeoutRef.current) clearTimeout(newRoundTimeoutRef.current);
   }, []);
 
+  // The first word starts as soon as the game is shown.
+  useEffect(() => {
+    report("round_start");
+  }, []);
+
   const togglePause = useCallback(() => setIsPaused(p => !p), []);
 
   // Restart game
@@ -229,6 +240,7 @@ export function useGameController() {
     if (newRoundTimeoutRef.current) clearTimeout(newRoundTimeoutRef.current);
     setIsPaused(false);
     setGameState(createInitialState());
+    report("round_start");
   }, []);
 
   // Helper functions for view
