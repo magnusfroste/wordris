@@ -4,7 +4,7 @@ Wordris är ordtetris för nybörjarläsare i låg- och mellanstadiet. Bokstäve
 spelplanen och barnet styr dem till rätt plats för att bilda ett svenskt ord. Bokstäver kan
 sparas i boken, men de som hamnar i elden brinner upp.
 
-**Spela:** https://ordspel.skolappar.com · En del av [Skolappar](https://www.skolappar.com) – pedagogiska appar av föräldrar · öppen källkod (MIT)
+**Spela:** https://ordspel.skolappar.org · En del av [Skolappar](https://www.skolappar.org) – pedagogiska appar av föräldrar · öppen källkod (MIT)
 
 ![Wordris](public/kort.png)
 
