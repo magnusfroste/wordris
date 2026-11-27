@@ -60,9 +60,9 @@ export function useGameController() {
   const toggleSound = useCallback(() => {
     const newEnabled = soundModel.toggle();
     setSoundEnabled(newEnabled);
-    // Cancel any ongoing speech when turning off
+    // Stoppa pågående uppläsning när ljudet slås av
     if (!newEnabled) {
-      window.speechSynthesis.cancel();
+      soundModel.stop();
       report("sound_off");
     }
   }, []);
@@ -217,7 +217,7 @@ export function useGameController() {
     const onVisibility = () => {
       if (document.hidden) {
         setIsPaused(true);
-        window.speechSynthesis?.cancel();
+        soundModel.stop();
       }
     };
     document.addEventListener("visibilitychange", onVisibility);
